@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"firebase.google.com/go/auth"
-	"../friend"
 )
 
 type List struct {
@@ -45,7 +44,7 @@ func getListGifts(db *sql.DB, listId int64) ([]*gift.Gift, error) {
 func GetLists(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	userId := params["userId"]
-	areFriends, err := friend.AreFriends(db, user.UID, userId)
+	areFriends, err := util.AreFriends(db, user.UID, userId)
 	if err != nil {
 		util.EncodeError(w, err)
 		return
@@ -146,8 +145,7 @@ func RemoveList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.T
 	params := mux.Vars(r)
 	id := params["listId"]
 
-	var currentOwner string
-	err := db.QueryRow("SELECT owner FROM lists WHERE id = ?", id).Scan(&currentOwner)
+	currentOwner, err := util.GetListOwner(db, id)
 	if err != nil {
 		util.EncodeError(w, err)
 		return

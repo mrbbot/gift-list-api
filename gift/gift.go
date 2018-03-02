@@ -26,12 +26,23 @@ type Claim struct {
 func CreateGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 
+	listId := params["listId"]
+	currentOwner, err := util.GetListOwner(db, listId)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	if currentOwner != user.UID {
+		util.EncodeUnauthorised(w)
+		return
+	}
+
 	var gift Gift
 	json.NewDecoder(r.Body).Decode(&gift)
 	gift.Claim = &Claim{State: 0, User: ""}
 
 	res, err := db.Exec("INSERT INTO gifts (name, description, url, image_url, list_id, claim_status, claimed_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		gift.Name, gift.Description, gift.Url, gift.ImageUrl, params["listId"], gift.Claim.State, gift.Claim.User)
+		gift.Name, gift.Description, gift.Url, gift.ImageUrl, listId, gift.Claim.State, gift.Claim.User)
 	if err != nil {
 		util.EncodeError(w, err)
 		return
@@ -52,9 +63,20 @@ func EditGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Tok
 	params := mux.Vars(r)
 	giftId := params["giftId"]
 
+	listId := params["listId"]
+	currentOwner, err := util.GetListOwner(db, listId)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	if currentOwner != user.UID {
+		util.EncodeUnauthorised(w)
+		return
+	}
+
 	var currentGift Gift
 	currentGift.Claim = &Claim{}
-	err := db.QueryRow("SELECT id, name, description, url, image_url, claim_status, claimed_by FROM gifts WHERE id = ?", giftId).Scan(
+	err = db.QueryRow("SELECT id, name, description, url, image_url, claim_status, claimed_by FROM gifts WHERE id = ?", giftId).Scan(
 		&currentGift.ID, &currentGift.Name, &currentGift.Description, &currentGift.Url, &currentGift.ImageUrl, &currentGift.Claim.State, &currentGift.Claim.User)
 	if err != nil {
 		util.EncodeError(w, err)
@@ -90,6 +112,17 @@ func RemoveGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.T
 	params := mux.Vars(r)
 	giftId := params["giftId"]
 
+	listId := params["listId"]
+	currentOwner, err := util.GetListOwner(db, listId)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	if currentOwner != user.UID {
+		util.EncodeUnauthorised(w)
+		return
+	}
+
 	res, err := db.Exec("DELETE FROM gifts WHERE id = ?", giftId)
 	if err != nil {
 		util.EncodeError(w, err)
@@ -114,16 +147,31 @@ func ClaimGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.To
 	params := mux.Vars(r)
 	giftId := params["giftId"]
 
+	listId := params["listId"]
+	currentOwner, err := util.GetListOwner(db, listId)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	areFriends, err := util.AreFriends(db, currentOwner, user.UID)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	if (currentOwner == user.UID) || (!areFriends) {
+		util.EncodeUnauthorised(w)
+		return
+	}
+
 	var claim Claim
-	err := db.QueryRow("SELECT claim_status, claimed_by FROM gifts WHERE id = ?", giftId).Scan(
+	err = db.QueryRow("SELECT claim_status, claimed_by FROM gifts WHERE id = ?", giftId).Scan(
 		&claim.State, &claim.User)
 	if err != nil {
 		util.EncodeError(w, err)
 		return
 	}
 
-	// TODO: Get from authorisation
-	claimee := "Claimer"
+	claimee := user.UID
 
 	if (len(claim.User) == 0) || (claim.User == claimee) {
 		var newClaim Claim

@@ -28,18 +28,6 @@ type friendContainer struct {
 	Requests []Friend `json:"requests"`
 }
 
-func AreFriends(db *sql.DB, uidOne string, uidTwo string) (bool, error) {
-	if uidOne == uidTwo {
-		return true, nil
-	}
-	rows, err := db.Query("SELECT id FROM friends WHERE owner = ? AND friend = ? AND state = 1", uidOne, uidTwo)
-	if err != nil {
-		return false, err
-	}
-	defer rows.Close()
-	return rows.Next(), nil
-}
-
 func GetFriends(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	var container friendContainer
 
