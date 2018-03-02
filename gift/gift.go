@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"../util"
+	"firebase.google.com/go/auth"
 )
 
 type Gift struct {
@@ -22,7 +23,7 @@ type Claim struct {
 	User		string 	`json:"user"`
 }
 
-func CreateGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func CreateGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 
 	var gift Gift
@@ -47,7 +48,7 @@ func CreateGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 }
 
-func EditGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func EditGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	giftId := params["giftId"]
 
@@ -85,7 +86,7 @@ func EditGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(currentGift)
 }
 
-func RemoveGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func RemoveGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	giftId := params["giftId"]
 
@@ -109,7 +110,7 @@ func RemoveGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 }
 
-func ClaimGift(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func ClaimGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	giftId := params["giftId"]
 

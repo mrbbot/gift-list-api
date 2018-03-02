@@ -22,3 +22,9 @@ func EncodeUnauthorised(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
 	json.NewEncoder(w).Encode(Response{Success: false, Message: "unauthorised"})
 }
+
+func EncodeNotFound(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(Response{Success: false, Message: "not found"})
+}

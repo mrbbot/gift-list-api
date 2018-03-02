@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"firebase.google.com/go/auth"
 )
 
 type List struct {
@@ -40,7 +41,7 @@ func getListGifts(db *sql.DB, listId int64) ([]*gift.Gift, error) {
 	return gifts, nil
 }
 
-func GetLists(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func GetLists(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 
 	lists := []List{}
@@ -73,7 +74,7 @@ func GetLists(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(lists)
 }
 
-func CreateList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func CreateList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	var list List
 	json.NewDecoder(r.Body).Decode(&list)
 	list.Owner = "Tester" //TODO: Add Authentication
@@ -96,7 +97,7 @@ func CreateList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(list)
 }
 
-func EditList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func EditList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	id := params["listId"]
 
@@ -126,7 +127,7 @@ func EditList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(currentList)
 }
 
-func RemoveList(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func RemoveList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	id := params["listId"]
 
