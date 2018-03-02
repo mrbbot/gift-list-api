@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"firebase.google.com/go/auth"
+	"../friend"
 )
 
 type List struct {
@@ -43,10 +44,20 @@ func getListGifts(db *sql.DB, listId int64) ([]*gift.Gift, error) {
 
 func GetLists(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
+	userId := params["userId"]
+	areFriends, err := friend.AreFriends(db, user.UID, userId)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	if !areFriends {
+		util.EncodeUnauthorised(w)
+		return
+	}
 
 	lists := []List{}
 
-	rows, err := db.Query("SELECT * FROM lists WHERE owner = ?", params["userId"])
+	rows, err := db.Query("SELECT * FROM lists WHERE owner = ?", userId)
 	if err != nil {
 		util.EncodeError(w, err)
 		return
@@ -77,7 +88,7 @@ func GetLists(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Tok
 func CreateList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	var list List
 	json.NewDecoder(r.Body).Decode(&list)
-	list.Owner = "Tester" //TODO: Add Authentication
+	list.Owner = user.UID
 
 	res, err := db.Exec("INSERT INTO lists (name, owner, description) VALUES (?, ?, ?)", list.Name, list.Owner, list.Description)
 	if err != nil {
@@ -107,6 +118,10 @@ func EditList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Tok
 		util.EncodeError(w, err)
 		return
 	}
+	if currentList.Owner != user.UID {
+		util.EncodeUnauthorised(w)
+		return
+	}
 
 	var newList List
 	json.NewDecoder(r.Body).Decode(&newList)
@@ -130,6 +145,17 @@ func EditList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Tok
 func RemoveList(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	id := params["listId"]
+
+	var currentOwner string
+	err := db.QueryRow("SELECT owner FROM lists WHERE id = ?", id).Scan(&currentOwner)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	if currentOwner != user.UID {
+		util.EncodeUnauthorised(w)
+		return
+	}
 
 	res, err := db.Exec("DELETE FROM lists WHERE id = ?", id)
 	if err != nil {
