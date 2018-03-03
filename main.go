@@ -56,6 +56,7 @@ func main() {
 	router.HandleFunc("/friends", inject(friend.GetFriends)).Methods("GET")
 	router.HandleFunc("/friend", inject(friend.AddFriend)).Methods("POST")
 	router.HandleFunc("/friend/accept/{friendId}", inject(friend.AcceptFriend)).Methods("POST")
+	router.HandleFunc("/friend/reject/{friendId}", inject(friend.RejectFriend)).Methods("POST")
 	router.HandleFunc("/friend/{friendId}", inject(friend.RemoveFriend)).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(address, router))

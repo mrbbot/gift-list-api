@@ -20,7 +20,9 @@ type Gift struct {
 
 type Claim struct {
 	State		int 	`json:"state"`
-	User		string 	`json:"user"`
+	User		string 	`json:"user,omitempty"`
+	Name 		string 	`json:"name,omitempty"`
+	Photo		string 	`json:"photo,omitempty"`
 }
 
 func CreateGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {

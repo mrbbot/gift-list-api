@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"../gift"
 	"../util"
+	authHelper "../auth"
 	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -33,6 +34,15 @@ func getListGifts(db *sql.DB, listId int64) ([]*gift.Gift, error) {
 		err := rows.Scan(&g.ID, &g.Name, &g.Description, &g.Url, &g.ImageUrl, &g.Claim.State, &g.Claim.User)
 		if err != nil {
 			return nil, err
+		}
+
+		if len(g.Claim.User) != 0 {
+			user, err := authHelper.UserFromUID(g.Claim.User)
+			if err != nil {
+				return nil, err
+			}
+			g.Claim.Name = user.DisplayName
+			g.Claim.Photo = user.PhotoURL
 		}
 
 		gifts = append(gifts, &g)

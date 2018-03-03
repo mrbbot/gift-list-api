@@ -15,7 +15,9 @@ type Friend struct {
 	ID 		int64 	`json:"id"`
 	Owner 	string 	`json:"owner,omitempty"`
 	Friend 	string 	`json:"friend,omitempty"`
-	Name	string 	`json:"name,omitempty"`
+	Email	string 	`json:"email,omitempty"`
+	Name 	string 	`json:"name,omitempty"`
+	Photo	string 	`json:"photo,omitempty"`
 	State 	bool 	`json:"state"`
 }
 
@@ -51,8 +53,9 @@ func GetFriends(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.T
 			util.EncodeError(w, err)
 			return
 		}
-		friend.Friend = user.Email
+		friend.Email = user.Email
 		friend.Name = user.DisplayName
+		friend.Photo = user.PhotoURL
 
 		container.Current = append(container.Current, friend)
 	}
@@ -77,8 +80,9 @@ func GetFriends(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.T
 			util.EncodeError(w, err)
 			return
 		}
-		friend.Owner = user.Email
+		friend.Email = user.Email
 		friend.Name = user.DisplayName
+		friend.Photo = user.PhotoURL
 
 		container.Requests = append(container.Requests, friend)
 	}
@@ -169,7 +173,6 @@ func doAcceptFriend(db *sql.DB, friendId string, owner string, friend string) er
 	return nil
 }
 
-// TODO: Consider removing this method and just use the add friend route instead
 func AcceptFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
 	params := mux.Vars(r)
 	friendId := params["friendId"]
@@ -196,6 +199,43 @@ func AcceptFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(currentFriend)
+}
+
+func RejectFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
+	params := mux.Vars(r)
+	friendId := params["friendId"]
+
+	var currentFriend Friend
+	err := db.QueryRow("SELECT * FROM friends WHERE id = ?", friendId).Scan(
+		&currentFriend.ID, &currentFriend.Owner, &currentFriend.Friend, &currentFriend.State)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+
+	if (currentFriend.Friend != user.UID) || (currentFriend.State) {
+		util.EncodeUnauthorised(w)
+		return
+	}
+
+	res, err := db.Exec("DELETE FROM friends WHERE id = ?", friendId)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if rowsAffected > 0 {
+		json.NewEncoder(w).Encode(util.Response{Success: true})
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(util.Response{Success: false, Message: "friend not found"})
+	}
 }
 
 func RemoveFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {
