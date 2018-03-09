@@ -1,16 +1,16 @@
 package util
 
 import (
-	"net/http"
-	"fmt"
-	"encoding/json"
-	"log"
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
 )
 
 type Response struct {
-	Success		bool		`json:"success"`
-	Message 	string		`json:"message,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
 }
 
 func EncodeError(w http.ResponseWriter, err error) {

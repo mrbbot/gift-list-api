@@ -2,10 +2,10 @@ package auth
 
 import (
 	"firebase.google.com/go"
-	"google.golang.org/api/option"
-	"golang.org/x/net/context"
-	"log"
 	"firebase.google.com/go/auth"
+	"golang.org/x/net/context"
+	"google.golang.org/api/option"
+	"log"
 )
 
 var client *auth.Client
@@ -31,7 +31,7 @@ func Verify(idToken string) (*auth.Token, error) {
 	return token, nil
 }
 
-func UserFromUID (uid string) (*auth.UserRecord, error) {
+func UserFromUID(uid string) (*auth.UserRecord, error) {
 	return client.GetUser(context.Background(), uid)
 }
 

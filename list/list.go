@@ -1,22 +1,22 @@
 package list
 
 import (
-	"net/http"
+	authHelper "../auth"
 	"../gift"
 	"../util"
-	authHelper "../auth"
 	"database/sql"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"firebase.google.com/go/auth"
+	"github.com/gorilla/mux"
+	"net/http"
 )
 
 type List struct {
-	ID			int64			`json:"id"`
-	Name		string 			`json:"name"`
-	Owner		string 			`json:"owner"`
-	Description string 			`json:"description"`
-	Gifts		[]*gift.Gift	`json:"gifts"`
+	ID          int64        `json:"id"`
+	Name        string       `json:"name"`
+	Owner       string       `json:"owner"`
+	Description string       `json:"description"`
+	Gifts       []*gift.Gift `json:"gifts"`
 }
 
 func getListGifts(db *sql.DB, listId int64) ([]*gift.Gift, error) {

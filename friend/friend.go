@@ -1,32 +1,32 @@
 package friend
 
 import (
-	"net/http"
-	"database/sql"
-	"../util"
-	"encoding/json"
 	authHelper "../auth"
-	"github.com/gorilla/mux"
+	"../util"
+	"database/sql"
+	"encoding/json"
 	"firebase.google.com/go/auth"
+	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
 )
 
 type Friend struct {
-	ID 		int64 	`json:"id"`
-	Owner 	string 	`json:"owner,omitempty"`
-	Friend 	string 	`json:"friend,omitempty"`
-	Email	string 	`json:"email,omitempty"`
-	Name 	string 	`json:"name,omitempty"`
-	Photo	string 	`json:"photo,omitempty"`
-	State 	bool 	`json:"state"`
+	ID     int64  `json:"id"`
+	Owner  string `json:"owner,omitempty"`
+	Friend string `json:"friend,omitempty"`
+	Email  string `json:"email,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Photo  string `json:"photo,omitempty"`
+	State  bool   `json:"state"`
 }
 
 type emailContainer struct {
-	Email	string 	`json:"email"`
+	Email string `json:"email"`
 }
 
 type friendContainer struct {
-	Current []Friend `json:"current"`
+	Current  []Friend `json:"current"`
 	Requests []Friend `json:"requests"`
 }
 
@@ -128,8 +128,8 @@ func AddFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.To
 	defer existingFriendRequest.Close()
 	if existingFriendRequest.Next() {
 		var (
-			friendId int64
-			ownerUid string
+			friendId  int64
+			ownerUid  string
 			friendUid string
 		)
 		existingFriendRequest.Scan(&friendId, &ownerUid, &friendUid)
@@ -137,6 +137,17 @@ func AddFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.To
 
 		w.Header().Set("Content-Type", "application/json")
 		friend.ID = friendId
+
+		//TODO: may be owner
+		user, err := authHelper.UserFromUID(friend.Friend)
+		if err != nil {
+			util.EncodeError(w, err)
+			return
+		}
+		friend.Email = user.Email
+		friend.Name = user.DisplayName
+		friend.Photo = user.PhotoURL
+
 		friend.State = true
 		json.NewEncoder(w).Encode(friend)
 
@@ -154,6 +165,15 @@ func AddFriend(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.To
 		util.EncodeError(w, err)
 		return
 	}
+
+	userRecord, err := authHelper.UserFromUID(friend.Friend)
+	if err != nil {
+		util.EncodeError(w, err)
+		return
+	}
+	friend.Email = userRecord.Email
+	friend.Name = userRecord.DisplayName
+	friend.Photo = userRecord.PhotoURL
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(friend)

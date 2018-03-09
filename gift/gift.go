@@ -1,28 +1,28 @@
 package gift
 
 import (
-	"net/http"
+	"../util"
 	"database/sql"
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"../util"
 	"firebase.google.com/go/auth"
+	"github.com/gorilla/mux"
+	"net/http"
 )
 
 type Gift struct {
-	ID			int64	`json:"id"`
-	Name 		string	`json:"name"`
-	Description	string	`json:"description"`
-	Url 		string	`json:"url"`
-	ImageUrl 	string	`json:"imageUrl"`
-	Claim		*Claim 	`json:"claim"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Url         string `json:"url"`
+	ImageUrl    string `json:"imageUrl"`
+	Claim       *Claim `json:"claim"`
 }
 
 type Claim struct {
-	State		int 	`json:"state"`
-	User		string 	`json:"user,omitempty"`
-	Name 		string 	`json:"name,omitempty"`
-	Photo		string 	`json:"photo,omitempty"`
+	State int    `json:"state"`
+	User  string `json:"user,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Photo string `json:"photo,omitempty"`
 }
 
 func CreateGift(w http.ResponseWriter, r *http.Request, db *sql.DB, user *auth.Token) {

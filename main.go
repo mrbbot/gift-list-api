@@ -1,17 +1,18 @@
 package main
 
 import (
+	authHelper "./auth"
 	"./friend"
 	"./gift"
 	"./list"
 	"./util"
-	authHelper "./auth"
 	"database/sql"
+	"firebase.google.com/go/auth"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"log"
 	"net/http"
-	"firebase.google.com/go/auth"
 )
 
 const address = ":8081"
@@ -59,5 +60,9 @@ func main() {
 	router.HandleFunc("/friend/reject/{friendId}", inject(friend.RejectFriend)).Methods("POST")
 	router.HandleFunc("/friend/{friendId}", inject(friend.RemoveFriend)).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(address, router))
+	handler := cors.New(cors.Options{
+		AllowedHeaders: []string{"Authorization", "Content-Type"},
+		AllowedMethods: []string{"GET", "POST", "DELETE"},
+	}).Handler(router)
+	log.Fatal(http.ListenAndServe(address, handler))
 }
