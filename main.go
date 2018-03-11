@@ -10,16 +10,22 @@ import (
 	"firebase.google.com/go/auth"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 )
-
-const address = ":8081"
 
 //TODO: Consider optimising with prepared statements
 func main() {
-	db, err := sql.Open("mysql", "root@tcp(localhost:3306)/giftlist")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("error loading .env file: %v\n", err)
+	}
+
+	db, err := sql.Open("mysql", os.Getenv("DB"))
 	if err != nil {
 		log.Fatalf("error initializing database: %v\n", err)
 	}
@@ -64,5 +70,14 @@ func main() {
 		AllowedHeaders: []string{"Authorization", "Content-Type"},
 		AllowedMethods: []string{"GET", "POST", "DELETE"},
 	}).Handler(router)
-	log.Fatal(http.ListenAndServe(address, handler))
+
+	address := os.Getenv("ADDRESS")
+	useSSL, err := strconv.ParseBool(os.Getenv("SSL"))
+	if useSSL {
+		certPath := os.Getenv("CERT")
+		keyPath := os.Getenv("KEY")
+		log.Fatal(http.ListenAndServeTLS(address, certPath, keyPath, handler))
+	} else {
+		log.Fatal(http.ListenAndServe(address, handler))
+	}
 }
