@@ -1,7 +1,7 @@
 package gift
 
 import (
-	"../util"
+	"github.com/mrbbot/gift-list-api/util"
 	"database/sql"
 	"encoding/json"
 	"firebase.google.com/go/auth"

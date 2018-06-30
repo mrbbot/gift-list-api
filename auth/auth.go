@@ -24,7 +24,7 @@ func Init() {
 }
 
 func Verify(idToken string) (*auth.Token, error) {
-	token, err := client.VerifyIDToken(idToken)
+	token, err := client.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
 		return nil, err
 	}

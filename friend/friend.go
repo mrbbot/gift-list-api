@@ -1,8 +1,8 @@
 package friend
 
 import (
-	authHelper "../auth"
-	"../util"
+	authHelper "github.com/mrbbot/gift-list-api/auth"
+	"github.com/mrbbot/gift-list-api/util"
 	"database/sql"
 	"encoding/json"
 	"firebase.google.com/go/auth"

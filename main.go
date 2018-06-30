@@ -1,11 +1,11 @@
 package main
 
 import (
-	authHelper "./auth"
-	"./friend"
-	"./gift"
-	"./list"
-	"./util"
+	authHelper "github.com/mrbbot/gift-list-api/auth"
+	"github.com/mrbbot/gift-list-api/friend"
+	"github.com/mrbbot/gift-list-api/gift"
+	"github.com/mrbbot/gift-list-api/list"
+	"github.com/mrbbot/gift-list-api/util"
 	"database/sql"
 	"firebase.google.com/go/auth"
 	_ "github.com/go-sql-driver/mysql"

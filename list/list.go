@@ -1,9 +1,9 @@
 package list
 
 import (
-	authHelper "../auth"
-	"../gift"
-	"../util"
+	authHelper "github.com/mrbbot/gift-list-api/auth"
+	"github.com/mrbbot/gift-list-api/gift"
+	"github.com/mrbbot/gift-list-api/util"
 	"database/sql"
 	"encoding/json"
 	"firebase.google.com/go/auth"
